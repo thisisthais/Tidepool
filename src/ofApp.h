@@ -59,4 +59,6 @@ class ofApp : public ofBaseApp{
         ofImage img;
         ofParameter<int> radius;
         ofParameter<bool> useGaussian;
+    
+        std::vector<cv::Point2f> centers;
 };

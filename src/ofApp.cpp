@@ -3,7 +3,7 @@
 using namespace ofxCv;
 using namespace cv;
 
-const float dyingTime = 1;
+const float dyingTime = -1;
 
 void Glow::setup(const cv::Rect& track) {
     color.setHsb(ofRandom(0, 255), 255, 255);
@@ -37,7 +37,7 @@ void Glow::draw() {
     ofNoFill();
     ofDrawCircle(cur, size);
     ofSetColor(color);
-    all.draw();
+//    all.draw();
     ofSetColor(255);
     ofDrawBitmapString(ofToString(label), cur);
     ofPopStyle();
@@ -92,7 +92,6 @@ void ofApp::update(){
 //        cameraTex.loadData(cameraPix);
         
 //        contourFinder.findContours(grabber);
-//        tracker.track(contourFinder.getBoundingRects());
         
         ofxCv::copy(grabber, img);
         if(useGaussian) {
@@ -105,7 +104,9 @@ void ofApp::update(){
         contourFinder.setMinAreaRadius(minArea);
         contourFinder.setMaxAreaRadius(maxArea);
         contourFinder.setThreshold(threshold);
+
         contourFinder.findContours(img);
+        tracker.track(contourFinder.getBoundingRects());
     }
 }
 
@@ -121,17 +122,17 @@ void ofApp::draw(){
 //        cameraTex.draw(0, cameraHeight, cameraWidth, cameraHeight);
 //    }
     
-//    contourFinder.draw();
-//    vector<Glow>& followers = tracker.getFollowers();
-//    for(int i = 0; i < followers.size(); i++) {
-//        followers[i].draw();
-//    }
-    
     if(img.isAllocated()) {
         img.draw(0, 0);
     }
     
     contourFinder.draw();
+    
+    vector<Glow>& centers = tracker.getFollowers();
+    for(int i = 0; i < centers.size(); i++) {
+        centers[i].draw();
+    }
+    
     gui.draw();
     
 }
