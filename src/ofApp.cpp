@@ -62,6 +62,11 @@ void ofApp::setup(){
 //    // an object can move up to 50 pixels per frame
 //    tracker.setMaximumDistance(500);
     
+    string share_data_path;
+    share_data_path = ofFilePath::getAbsolutePath("images/");
+    watcher.watch(share_data_path);
+    imageFileWatcher.setup(&loader);
+    
     gui.setup();
     gui.add(minArea.set("Min area", 10, 1, 100));
     gui.add(maxArea.set("Max area", 200, 1, 500));
@@ -108,6 +113,13 @@ void ofApp::update(){
         contourFinder.findContours(img);
         tracker.track(contourFinder.getBoundingRects());
     }
+    
+    int oldNum = imageFileWatcher.getNumLoaded();
+    imageFileWatcher.update();
+    int num = imageFileWatcher.getNumLoaded();
+    if (oldNum != num) {
+        loadedImages = imageFileWatcher.getLoaded();
+    }
 }
 
 //--------------------------------------------------------------
@@ -123,17 +135,22 @@ void ofApp::draw(){
 //    }
     
     if(img.isAllocated()) {
-        img.draw(0, 0);
+//        img.draw(0, 0);
     }
     
-    contourFinder.draw();
+    for(int i = 0; i < loadedImages.size(); i++) {
+        ofSetColor(0xffffff);
+        loadedImages[i]->draw(0, 200*i, 200, 200);
+    }
+    
+//    contourFinder.draw();
     
     vector<Glow>& centers = tracker.getFollowers();
     for(int i = 0; i < centers.size(); i++) {
-        centers[i].draw();
+//        centers[i].draw();
     }
     
-    gui.draw();
+//    gui.draw();
     
 }
 
@@ -184,7 +201,15 @@ void ofApp::windowResized(int w, int h){
 
 //--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
+    vector<string> msgs = ofSplitString(msg.message, "|");
 
+    if (msgs.size() > 0) {
+        if (msgs[0] == "Added") {
+            imageFileWatcher.addFile(msgs[1]);
+        } else if (msgs[0] == "Modified") {
+            imageFileWatcher.modifyFile(msgs[1]);
+        }
+    }
 }
 
 //--------------------------------------------------------------

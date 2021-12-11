@@ -3,4 +3,6 @@ ofxCv
 ofxGui
 ofxPoco
 ofxIpVideoGrabber
+ofxPocoDirectoryWatcher
+ofxThreadedImageLoader
 ofxXmlSettings

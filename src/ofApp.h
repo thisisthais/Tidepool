@@ -1,9 +1,15 @@
 #pragma once
 
 #include "ofMain.h"
+
 #include "IPVideoGrabber.h"
+
 #include "ofxCv.h"
 #include "ofxGui.h"
+
+#include "ofxThreadedImageLoader.h"
+#include "ofxPocoDirectoryWatcher.h"
+#include "ImageFileWatcher.h"
 
 class Glow : public ofxCv::RectFollower {
 protected:
@@ -61,4 +67,9 @@ class ofApp : public ofBaseApp{
         ofParameter<bool> useGaussian;
     
         std::vector<cv::Point2f> centers;
+    
+        ofxPocoDirectoryWatcher watcher;
+        ofxThreadedImageLoader loader;
+        ImageFileWatcher imageFileWatcher;
+        vector<ofImage*> loadedImages;
 };
