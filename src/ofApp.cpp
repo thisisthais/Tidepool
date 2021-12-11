@@ -135,22 +135,22 @@ void ofApp::draw(){
 //    }
     
     if(img.isAllocated()) {
-//        img.draw(0, 0);
+        img.draw(0, 0);
     }
     
     for(int i = 0; i < loadedImages.size(); i++) {
         ofSetColor(0xffffff);
-        loadedImages[i]->draw(0, 200*i, 200, 200);
+        loadedImages[i]->draw(200*1, 200, 200, 200);
     }
     
-//    contourFinder.draw();
+    contourFinder.draw();
     
-    vector<Glow>& centers = tracker.getFollowers();
+    centers = tracker.getFollowers();
     for(int i = 0; i < centers.size(); i++) {
-//        centers[i].draw();
+        centers[i].draw();
     }
     
-//    gui.draw();
+    gui.draw();
     
 }
 

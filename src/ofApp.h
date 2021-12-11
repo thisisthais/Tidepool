@@ -66,7 +66,7 @@ class ofApp : public ofBaseApp{
         ofParameter<int> radius;
         ofParameter<bool> useGaussian;
     
-        std::vector<cv::Point2f> centers;
+        vector<Glow> centers;
     
         ofxPocoDirectoryWatcher watcher;
         ofxThreadedImageLoader loader;
