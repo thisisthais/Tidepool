@@ -8,13 +8,17 @@ const float dyingTime = -1;
 void Glow::setup(const cv::Rect& track) {
     color.setHsb(ofRandom(0, 255), 255, 255);
     cur = toOf(track).getCenter();
+    cur.x = 1600.0f*cur.x/1024.0f;
+    area = track.area();
     smooth = cur;
 }
 
 void Glow::update(const cv::Rect& track) {
     cur = toOf(track).getCenter();
-    smooth.interpolate(cur, .5);
-    all.addVertex(smooth);
+    cur.x = 1600.0f*cur.x/1024.0f;
+    area = track.area();
+//    smooth.interpolate(cur, .5);
+//    all.addVertex(smooth);
 }
 
 void Glow::kill() {
@@ -39,7 +43,7 @@ void Glow::draw() {
     ofSetColor(color);
 //    all.draw();
     ofSetColor(255);
-    ofDrawBitmapString(ofToString(label), cur);
+    ofDrawBitmapString(ofToString(cur), cur);
     ofPopStyle();
 }
 
@@ -48,8 +52,7 @@ void ofApp::setup(){
     ofSetFrameRate(30);
     ofSetVerticalSync(true);
 
-    grabber.setURI("http://192.168.4.70/mjpeg/1");
-
+    grabber.setURI("http://192.168.4.1/mjpeg/1");
     // Connect to the stream.
     grabber.connect();
     
@@ -70,7 +73,7 @@ void ofApp::setup(){
     gui.setup();
     gui.add(minArea.set("Min area", 10, 1, 100));
     gui.add(maxArea.set("Max area", 200, 1, 500));
-    gui.add(threshold.set("Threshold", 128, 0, 255));
+    gui.add(threshold.set("Threshold", 55, 0, 255));
     useGaussian = false;
     gui.add(useGaussian.set("Use Gaussian", false));
     gui.add(radius.set("Radius", 50, 0, 100));
@@ -135,7 +138,7 @@ void ofApp::draw(){
 //    }
     
     if(img.isAllocated()) {
-        img.draw(0, 0);
+        img.draw(0, 0, cameraWidth, cameraHeight);
     }
     
     for(int i = 0; i < loadedImages.size(); i++) {
@@ -148,7 +151,11 @@ void ofApp::draw(){
     centers = tracker.getFollowers();
     for(int i = 0; i < centers.size(); i++) {
         centers[i].draw();
+        ofDrawBitmapString(ofToString(centers[i].area), 400, 400);
     }
+    
+    ofSetColor(255);
+    ofDrawBitmapString(ofToString(grabber.getWidth()), 400, 400);
     
     gui.draw();
     

@@ -21,6 +21,11 @@ public:
     Glow()
         :startedDying(0) {
     }
+    
+    std::size_t cameraWidth = 1600;
+    std::size_t cameraHeight = 1200;
+    float area;
+
     void setup(const cv::Rect& track);
     void update(const cv::Rect& track);
     void kill();
@@ -53,8 +58,8 @@ class ofApp : public ofBaseApp{
         ofTexture cameraTex;
         
         // Set the display size for the cameras.
-        std::size_t cameraWidth = 1024;
-        std::size_t cameraHeight = 768;
+        std::size_t cameraWidth = 1600;
+        std::size_t cameraHeight = 1200;
     
         ofxCv::ContourFinder contourFinder;
         ofxCv::RectTrackerFollower<Glow> tracker;
