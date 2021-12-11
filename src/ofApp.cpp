@@ -53,14 +53,23 @@ void ofApp::setup(){
     // Connect to the stream.
     grabber.connect();
     
-    contourFinder.setMinAreaRadius(10);
-    contourFinder.setMaxAreaRadius(100);
-    contourFinder.setAutoThreshold(true);
+//    contourFinder.setMinAreaRadius(10);
+//    contourFinder.setMaxAreaRadius(100);
+//    contourFinder.setAutoThreshold(true);
     
-    // wait for half a frame before forgetting something
-    tracker.setPersistence(15);
-    // an object can move up to 50 pixels per frame
-    tracker.setMaximumDistance(500);
+//    // wait for half a frame before forgetting something
+//    tracker.setPersistence(15);
+//    // an object can move up to 50 pixels per frame
+//    tracker.setMaximumDistance(500);
+    
+    gui.setup();
+    gui.add(minArea.set("Min area", 10, 1, 100));
+    gui.add(maxArea.set("Max area", 200, 1, 500));
+    gui.add(threshold.set("Threshold", 128, 0, 255));
+    useGaussian = false;
+    gui.add(useGaussian.set("Use Gaussian", false));
+    gui.add(radius.set("Radius", 50, 0, 100));
+    contourFinder.setSimplify(true);
 }
 
 //--------------------------------------------------------------
@@ -82,8 +91,21 @@ void ofApp::update(){
 //        // Load the texture.
 //        cameraTex.loadData(cameraPix);
         
-        contourFinder.findContours(grabber);
-        tracker.track(contourFinder.getBoundingRects());
+//        contourFinder.findContours(grabber);
+//        tracker.track(contourFinder.getBoundingRects());
+        
+        ofxCv::copy(grabber, img);
+        if(useGaussian) {
+            ofxCv::GaussianBlur(img, radius);
+        } else {
+            ofxCv::blur(img, radius);
+        }
+        img.update();
+        
+        contourFinder.setMinAreaRadius(minArea);
+        contourFinder.setMaxAreaRadius(maxArea);
+        contourFinder.setThreshold(threshold);
+        contourFinder.findContours(img);
     }
 }
 
@@ -92,7 +114,7 @@ void ofApp::draw(){
     ofSetColor(255);
         
     // Draw the camera.
-    grabber.draw(0, 0, cameraWidth, cameraHeight);
+//    grabber.draw(0, 0, cameraWidth, cameraHeight);
     
     // Draw the modified pixels if they are available.
 //    if (cameraTex.isAllocated()) {
@@ -100,10 +122,18 @@ void ofApp::draw(){
 //    }
     
 //    contourFinder.draw();
-    vector<Glow>& followers = tracker.getFollowers();
-    for(int i = 0; i < followers.size(); i++) {
-        followers[i].draw();
+//    vector<Glow>& followers = tracker.getFollowers();
+//    for(int i = 0; i < followers.size(); i++) {
+//        followers[i].draw();
+//    }
+    
+    if(img.isAllocated()) {
+        img.draw(0, 0);
     }
+    
+    contourFinder.draw();
+    gui.draw();
+    
 }
 
 //--------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "IPVideoGrabber.h"
 #include "ofxCv.h"
+#include "ofxGui.h"
 
 class Glow : public ofxCv::RectFollower {
 protected:
@@ -46,9 +47,16 @@ class ofApp : public ofBaseApp{
         ofTexture cameraTex;
         
         // Set the display size for the cameras.
-        std::size_t cameraWidth = 1280;
-        std::size_t cameraHeight = 720;
+        std::size_t cameraWidth = 1024;
+        std::size_t cameraHeight = 768;
     
         ofxCv::ContourFinder contourFinder;
         ofxCv::RectTrackerFollower<Glow> tracker;
+    
+        ofxPanel gui;
+        ofParameter<float> minArea, maxArea, threshold;
+        
+        ofImage img;
+        ofParameter<int> radius;
+        ofParameter<bool> useGaussian;
 };
