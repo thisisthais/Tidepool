@@ -48,8 +48,8 @@ void Glow::draw() {
 //    ofSetColor(color);
 //    all.draw();
 //    ofSetColor(255);
-    ofDrawBitmapString(ofToString(cur), cur);
-    ofDrawBitmapString(ofToString(area), cur.x, cur.y + 30.0f);
+//    ofDrawBitmapString(ofToString(cur), cur);
+//    ofDrawBitmapString(ofToString(area), cur.x, cur.y + 30.0f);
     ofPopStyle();
 }
 
@@ -132,11 +132,15 @@ void ofApp::setup(){
     contourFinder.setSimplify(true);
     largestCenter = *(new Glow());
     largestCenter.active = false;
+    
+    myPlayer.load("tidepool.mp4");
+    myPlayer.play();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     grabber.update();
+    myPlayer.update();
         
     if (grabber.isFrameNew()) {
         cameraPix = grabber.getPixels();
@@ -198,6 +202,8 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    ofSetColor(255);
+    myPlayer.draw(0,0, ofGetWindowWidth(), ofGetWindowHeight());
         
     // Draw the camera.
 //    ofPushMatrix();
@@ -207,16 +213,16 @@ void ofApp::draw(){
 //    ofPopMatrix();
 
     
-    ofEnableBlendMode(OF_BLENDMODE_ADD);
-    // Draw the modified pixels if they are available.
-    if (cameraTex.isAllocated()) {
-        ofPushMatrix();
-        ofTranslate(cameraWidth, 0, 0);
-        ofScale(-1, 1, 0);
-        cameraTex.draw(0, 0, cameraWidth, cameraHeight);
-        ofPopMatrix();
-    }
-    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+//    ofEnableBlendMode(OF_BLENDMODE_ADD);
+////     Draw the modified pixels if they are available.
+//    if (cameraTex.isAllocated()) {
+//        ofPushMatrix();
+//        ofTranslate(cameraWidth, 0, 0);
+//        ofScale(-1, 1, 0);
+//        cameraTex.draw(0, 0, cameraWidth, cameraHeight);
+//        ofPopMatrix();
+//    }
+//    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 //
 //    if(img.isAllocated()) {
 //        ofPushMatrix();
@@ -252,8 +258,9 @@ void ofApp::draw(){
         ofDrawLine(0,0,-boids[i].velocity.x*2.0,-boids[i].velocity.y*2.0);
         int imgi = i % loadedImages.size();
         ofSetColor(0xffffff);
-        float size = 30 + boids[i].position.z*1.0;
-        loadedImages[imgi]->draw(-size/2,-size/2, size, size);
+        float size = 50 + boids[i].position.z*2.0;
+        float h = size*loadedImages[imgi]->getHeight()/loadedImages[imgi]->getWidth();
+        loadedImages[imgi]->draw(-size/2,-h/2, size, h);
         
 //        glMaterialfv(RONT_AGL_FND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
 //        glCallList(1);

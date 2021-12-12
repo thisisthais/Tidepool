@@ -89,4 +89,6 @@ class ofApp : public ofBaseApp{
         vector<SteeredVehicle> boids;
     
         ofParameter<float> xStart, xScale, yStart, yScale;
+    
+        ofVideoPlayer myPlayer;
 };

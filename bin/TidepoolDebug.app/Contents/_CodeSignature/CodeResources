@@ -20,6 +20,15 @@
 			<key>requirement</key>
 			<string>cdhash H"085bb33d9bc353fe4d66b5a25b4b98cdde785b0e" or cdhash H"006dfb64ac4603a8a72b5689238131a13827c91e" or cdhash H"305a9fc357f8e6e87330338f5035b8b8ffe42a4e" or cdhash H"35e5e4bd28644407ff39905b89145a82b9e05bfe"</string>
 		</dict>
+		<key>MacOS/TidepoolDebug.ld_TJgpKj</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			+7Oypzhcdd2WW6Hf+p1aOeSbdpM=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"84bf9049972608a32df69c7ae0317972457ac781" or cdhash H"fbb3b2a7385c75dd965ba1dffa9d5a39e49b7693"</string>
+		</dict>
 		<key>Resources/icon-debug.icns</key>
 		<dict>
 			<key>hash</key>
