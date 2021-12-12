@@ -88,7 +88,7 @@ public:
 	bool tooClose(const ofVec3f& target);
 	
 	
-	template<typename Type> void flock(std::vector<Type>& vehicles)
+	template<typename Type> void flock(std::vector<Type>& vehicles, ofVec2f attractor)
 	{
 		ofVec3f averageVelocity;
 		ofVec3f averagePosition;
@@ -118,6 +118,7 @@ public:
 			averageVelocity *= 1.0f / inSightCnt;
 			steeringForce += averageVelocity - velocity;
 		}
+        seek(ofVec3f(attractor.x,attractor.y,0.0));
 	}
 };
 

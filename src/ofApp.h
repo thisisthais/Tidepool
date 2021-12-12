@@ -16,7 +16,6 @@
 class Glow : public ofxCv::RectFollower {
 protected:
     ofColor color;
-    ofVec3f cur, smooth;
     float startedDying;
     ofPolyline all;
 public:
@@ -24,6 +23,7 @@ public:
         :startedDying(0) {
     }
     
+    ofVec3f cur, smooth;
     std::size_t cameraWidth = 1600;
     std::size_t cameraHeight = 1200;
     float area;
@@ -74,12 +74,14 @@ class ofApp : public ofBaseApp{
         ofParameter<bool> useGaussian;
     
         vector<Glow> centers;
-    
+        Glow largestCenter;
+
         ofxPocoDirectoryWatcher watcher;
         ofxThreadedImageLoader loader;
         ImageFileWatcher imageFileWatcher;
         vector<ofImage*> loadedImages;
-    
+        ofImage* images;
+        
         ofEasyCam cam;
         int boidNum;
         ofVec3f target;

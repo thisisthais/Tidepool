@@ -28,10 +28,18 @@
 
 int Vehicle::number = 0;
 
-
 void Vehicle::update()
 {
-	velocity.limit(maxSpeed);
+    velocity.limit(maxSpeed);
+    
+    float lengthSquared = (velocity.x*velocity.x + velocity.y*velocity.y + velocity.z*velocity.z);
+    if( lengthSquared < minSpeed*minSpeed && lengthSquared > 0 ) {
+        float ratio = minSpeed/(float)sqrt(lengthSquared);
+        velocity.x *= ratio;
+        velocity.y *= ratio;
+        velocity.z *= ratio;
+    }
+    
 	position += velocity;
 	
 	trails.push_back(position);
@@ -40,37 +48,38 @@ void Vehicle::update()
 
 void Vehicle::bounce(int w, int h, int d)
 {
+    float k = -0.8;
 	if (position.x > w * .5f)
 	{
 		position.x = w * .5f;
-		velocity.x *= -1;
+		velocity.x *= k;
 	}
 	else if (position.x < - w * .5f)
 	{
 		position.x = - w * .5f;
-		velocity.x *= -1;
+		velocity.x *= k;
 	}
 	
 	if (position.y > h * .5f)
 	{
 		position.y = h * .5f;
-		velocity.y *= -1;
+		velocity.y *=k;
 	}
 	else if (position.y < - h * .5f)
 	{
 		position.y = - h * .5f;
-		velocity.y *= -1;
+		velocity.y *= k;
 	}
 	
 	if (position.z > d * .5f)
 	{
 		position.z = d * .5f;
-		velocity.z *= -1;
+		velocity.z *= k;
 	}
 	else if (position.z < - d * .5f)
 	{
 		position.z = - d * .5f;
-		velocity.z *= -1;
+		velocity.z *= k;
 	}
 }
 
@@ -102,4 +111,5 @@ void Vehicle::wrap(int w, int h, int d)
 	{
 		position.z = d * .5f;
 	}
+    position.z = 0.;
 }

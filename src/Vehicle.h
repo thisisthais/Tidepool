@@ -45,14 +45,16 @@ public:
 	std::vector<ofVec3f> trails;
 	
 	float mass;
-	float maxSpeed;
+    float maxSpeed;
+    float minSpeed;
 	float maxTrailSize;
 	
 	Vehicle(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f)
 	{
 		id = number++;
 		mass = 1.0f;
-		maxSpeed = 4.0f;
+        maxSpeed = 4.0f;
+        minSpeed = 0.5f;
 		maxTrailSize = 10;
 		position.set(ofVec3f(_x, _y, _z));
 	}

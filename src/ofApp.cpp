@@ -11,7 +11,7 @@ void Glow::setup(const cv::Rect& track) {
     color.setHsb(ofRandom(0, 255), 255, 255);
     cur = toOf(track).getCenter();
     cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
-    cur.y = 1200.0f - (1200.0f*cur.y/768.0f);
+    cur.y = 1200.0f*cur.y/768.0f;
     area = track.area();
     smooth = cur;
 }
@@ -19,7 +19,7 @@ void Glow::setup(const cv::Rect& track) {
 void Glow::update(const cv::Rect& track) {
     cur = toOf(track).getCenter();
     cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
-    cur.y = 1200.0f - (1200.0f*cur.y/768.0f);
+    cur.y = 1200.0f*cur.y/768.0f;
     area = track.area();
 //    smooth.interpolate(cur, .5);
 //    all.addVertex(smooth);
@@ -37,16 +37,16 @@ void Glow::kill() {
 void Glow::draw() {
     ofPushStyle();
     float size = 16;
-    ofSetColor(255);
+//    ofSetColor(255);
     if(startedDying) {
         ofSetColor(ofColor::red);
         size = ofMap(ofGetElapsedTimef() - startedDying, 0, dyingTime, size, 0, true);
     }
     ofNoFill();
     ofDrawCircle(cur, size);
-    ofSetColor(color);
+//    ofSetColor(color);
 //    all.draw();
-    ofSetColor(255);
+//    ofSetColor(255);
     ofDrawBitmapString(ofToString(cur), cur);
     ofDrawBitmapString(ofToString(area), cur.x, cur.y + 30.0f);
     ofPopStyle();
@@ -66,12 +66,28 @@ void ofApp::setup(){
 //    contourFinder.setAutoThreshold(true);
     
 //    // wait for half a frame before forgetting something
-//    tracker.setPersistence(15);
-//    // an object can move up to 50 pixels per frame
+    tracker.setPersistence(15);
+//    // an object can move up to 500 pixels per frame
 //    tracker.setMaximumDistance(500);
     
     string share_data_path;
     share_data_path = ofFilePath::getAbsolutePath("images/");
+    //loadedImages = imageFileWatcher.getLoaded();
+    
+    ofDirectory dir(share_data_path);
+    //only show png files
+    dir.allowExt("png");
+    //populate the directory object
+    dir.listDir();
+
+    //go through and print out all the paths
+    images = new ofImage[dir.size()];
+    for(int i = 0; i < dir.size(); i++){
+        images[i].load(dir.getPath(i));
+        loadedImages.push_back(&images[i]);
+    }
+//    loadedImages =
+
     watcher.watch(share_data_path);
     imageFileWatcher.setup(&loader);
     
@@ -85,7 +101,7 @@ void ofApp::setup(){
 
 //    glEndList();
     
-    boidNum = 100;
+    boidNum = 50;
     target = ofVec3f(0, 0, 0);
     
     for (int i = 0; i < boidNum; i++) {
@@ -104,11 +120,12 @@ void ofApp::setup(){
     gui.setup();
     gui.add(minArea.set("Min area", 10, 1, 100));
     gui.add(maxArea.set("Max area", 200, 1, 500));
-    gui.add(threshold.set("Threshold", 55, 0, 255));
+    gui.add(threshold.set("Threshold", 130, 0, 255));
     useGaussian = false;
     gui.add(useGaussian.set("Use Gaussian", false));
-    gui.add(radius.set("Radius", 50, 0, 100));
+    gui.add(radius.set("Radius", 0, 0, 100));
     contourFinder.setSimplify(true);
+    largestCenter = *(new Glow());
 }
 
 //--------------------------------------------------------------
@@ -116,23 +133,24 @@ void ofApp::update(){
     grabber.update();
         
     if (grabber.isFrameNew()) {
-//        cameraPix = grabber.getPixels();
-//
-//        // Use or modify pixels in some way, e.g. invert the colors.
-//        for (std::size_t x = 0; x < cameraPix.getWidth(); x++)
-//        {
-//            for (std::size_t y = 0; y < cameraPix.getHeight(); y++)
-//            {
-//                cameraPix.setColor(x, y, cameraPix.getColor(x, y).getInverted());
-//            }
-//        }
-//
-//        // Load the texture.
-//        cameraTex.loadData(cameraPix);
+        cameraPix = grabber.getPixels();
+
+        // Use or modify pixels in some way, e.g. invert the colors.
+        for (std::size_t x = 0; x < cameraPix.getWidth(); x++)
+        {
+            for (std::size_t y = 0; y < cameraPix.getHeight(); y++)
+            {
+                cameraPix.setColor(x, y, cameraPix.getColor(x, y) - 100);
+            }
+        }
+
+        // Load the texture.
+        cameraTex.loadData(cameraPix);
         
 //        contourFinder.findContours(grabber);
         
-        ofxCv::copy(grabber, img);
+//        ofxCv::copy(grabber, img);
+        ofxCv::copy(cameraPix, img);
         if(useGaussian) {
             ofxCv::GaussianBlur(img, radius);
         } else {
@@ -147,11 +165,16 @@ void ofApp::update(){
         contourFinder.findContours(img);
         tracker.track(contourFinder.getBoundingRects());
     }
+//    ofVec2f attractor(ofGetMouseX()-ofGetWidth()*0.5, (ofGetHeight()*.5) - ofGetMouseY());
     
+        ofVec2f attractor(largestCenter.cur.x - ofGetWidth()*0.5,ofGetHeight()*0.5 - largestCenter.cur.y );
+
     for (int i = 0; i < boidNum; i++) {
-        boids[i].flock(boids);
+        
+        boids[i].flock(boids, attractor);
+//        boids[i].flock(boids, ofGetMouseX(), ofGetMouseY());
         boids[i].update();
-        boids[i].wrap(300, 300, 300);
+        boids[i].bounce(1500, 900, 20);
     }
     
     int oldNum = imageFileWatcher.getNumLoaded();
@@ -167,35 +190,32 @@ void ofApp::draw(){
     ofSetColor(255);
         
     // Draw the camera.
-    ofPushMatrix();
-    ofTranslate(cameraWidth, 0, 0);
-    ofScale(-1, 1, 0);
-    grabber.draw(0, 0, cameraWidth, cameraHeight);
-    ofPopMatrix();
+//    ofPushMatrix();
+//    ofTranslate(cameraWidth, 0, 0);
+//    ofScale(-1, 1, 0);
+//    grabber.draw(0, 0, cameraWidth, cameraHeight);
+//    ofPopMatrix();
 
     // Draw the modified pixels if they are available.
     if (cameraTex.isAllocated()) {
-//        cameraTex.draw(0, cameraHeight, cameraWidth, cameraHeight);
+        ofPushMatrix();
+        ofTranslate(cameraWidth, 0, 0);
+        ofScale(-1, 1, 0);
+        cameraTex.draw(0, 0, cameraWidth, cameraHeight);
+        ofPopMatrix();
     }
-    
-    if(img.isAllocated()) {
+//
+//    if(img.isAllocated()) {
 //        ofPushMatrix();
-//        ofScale(1, -1, 1);
-//        ofTranslate(0, -cameraHeight, 0);
+//        ofTranslate(cameraWidth, 0, 0);
+//        ofScale(-1, 1, 0);
 //        img.draw(0, 0, cameraWidth, cameraHeight);
 //        ofPopMatrix();
-    }
+//    }
     
     for(int i = 0; i < loadedImages.size(); i++) {
         ofSetColor(0xffffff);
-        loadedImages[i]->draw(200*1, 200, 200, 200);
-    }
-    
-    contourFinder.draw();
-    
-    centers = tracker.getFollowers();
-    for(int i = 0; i < centers.size(); i++) {
-        centers[i].draw();
+//        loadedImages[i]->draw(200*1, 200, 200, 200);
     }
     
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -203,22 +223,54 @@ void ofApp::draw(){
     
     cam.begin();
     
+    ofSetColor(255, 200,255);
+    ofVec2f attractor(ofGetMouseX()-ofGetWidth()*0.5, (ofGetHeight()*.5) - ofGetMouseY());
+
+    ofDrawCircle(attractor.x,attractor.y,3);
     for (int i = 0; i < boidNum; i++) {
         glPushMatrix();
+        float angle = boids[i].velocity.angle(ofVec2f(1.,0));
         glTranslatef(boids[i].position.x, boids[i].position.y, boids[i].position.z);
+        ofRotateDeg(angle);
+
+        ofSetColor(200, 255,255);
+        ofDrawCircle(0,0,1 + (boids[i].position.z * 0.05));
         
-        GLfloat color[] = { 0.8, 0.2, 0.2, 1.0 };
+        ofDrawLine(0,0,-boids[i].velocity.x*2.0,-boids[i].velocity.y*2.0);
+        int imgi = i % loadedImages.size();
+        ofSetColor(0xffffff);
+        loadedImages[imgi]->draw(-20,-20, 40, 40);
         
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-        glCallList(1);
+//        glMaterialfv(RONT_AGL_FND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+//        glCallList(1);
         glPopMatrix();
     }
     
     cam.end();
     
-    ofSetColor(255);
-    ofDrawBitmapString(ofToString(grabber.getWidth()), 400, 400);
+//    ofSetColor(255);
+//    ofDrawBitmapString(ofToString(grabber.getWidth()), 400, 400);
+    ofPushMatrix();
+    ofTranslate(cameraWidth, 0, 0);
+    ofScale(-1, 1, 0);
+    contourFinder.draw();
+    ofPopMatrix();
+    centers = tracker.getFollowers();
     
+    for(int i = 0; i < centers.size(); i++) {
+        if(i==0){
+            largestCenter= centers[i];
+        }else
+            if(largestCenter.area <centers[i].area)
+            {
+                largestCenter = centers[i];
+        }
+        ofSetColor(255);
+        centers[i].draw();
+    }
+    
+    ofSetColor(0,255,0);
+    largestCenter.draw();
     gui.draw();
     
 }
