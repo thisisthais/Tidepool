@@ -1,4 +1,6 @@
 #include "ofApp.h"
+#include <iostream>
+#include <GLUT/GLUT.h>
 
 using namespace ofxCv;
 using namespace cv;
@@ -8,14 +10,16 @@ const float dyingTime = -1;
 void Glow::setup(const cv::Rect& track) {
     color.setHsb(ofRandom(0, 255), 255, 255);
     cur = toOf(track).getCenter();
-    cur.x = 1600.0f*cur.x/1024.0f;
+    cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
+    cur.y = 1200.0f - (1200.0f*cur.y/768.0f);
     area = track.area();
     smooth = cur;
 }
 
 void Glow::update(const cv::Rect& track) {
     cur = toOf(track).getCenter();
-    cur.x = 1600.0f*cur.x/1024.0f;
+    cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
+    cur.y = 1200.0f - (1200.0f*cur.y/768.0f);
     area = track.area();
 //    smooth.interpolate(cur, .5);
 //    all.addVertex(smooth);
@@ -44,6 +48,7 @@ void Glow::draw() {
 //    all.draw();
     ofSetColor(255);
     ofDrawBitmapString(ofToString(cur), cur);
+    ofDrawBitmapString(ofToString(area), cur.x, cur.y + 30.0f);
     ofPopStyle();
 }
 
@@ -69,6 +74,32 @@ void ofApp::setup(){
     share_data_path = ofFilePath::getAbsolutePath("images/");
     watcher.watch(share_data_path);
     imageFileWatcher.setup(&loader);
+    
+//    ofEnableSmoothing();
+//    ofEnableAlphaBlending();
+    //ofHideCursor();
+    
+//    glNewList(1, GL_COMPILE);
+//    glutSolidSphere(1, 40, 40);
+//    ofDrawCircle(150,150,100);
+
+//    glEndList();
+    
+    boidNum = 100;
+    target = ofVec3f(0, 0, 0);
+    
+    for (int i = 0; i < boidNum; i++) {
+        SteeredVehicle v(ofRandom(100)-50, ofRandom(100)-50, ofRandom(100)-50);
+        v.maxForce = 0.5f;
+        v.inSightDist = 60.0f;
+        boids.push_back(v);
+    }
+    
+//    cam.setDistance(500);
+//    GLfloat color[] = { 1.0, 0.2, 0.2 };
+//    glEnable(GL_LIGHTING);
+//    glEnable(GL_LIGHT0);
+//    glLightfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
     
     gui.setup();
     gui.add(minArea.set("Min area", 10, 1, 100));
@@ -117,6 +148,12 @@ void ofApp::update(){
         tracker.track(contourFinder.getBoundingRects());
     }
     
+    for (int i = 0; i < boidNum; i++) {
+        boids[i].flock(boids);
+        boids[i].update();
+        boids[i].wrap(300, 300, 300);
+    }
+    
     int oldNum = imageFileWatcher.getNumLoaded();
     imageFileWatcher.update();
     int num = imageFileWatcher.getNumLoaded();
@@ -130,15 +167,23 @@ void ofApp::draw(){
     ofSetColor(255);
         
     // Draw the camera.
-//    grabber.draw(0, 0, cameraWidth, cameraHeight);
-    
+    ofPushMatrix();
+    ofTranslate(cameraWidth, 0, 0);
+    ofScale(-1, 1, 0);
+    grabber.draw(0, 0, cameraWidth, cameraHeight);
+    ofPopMatrix();
+
     // Draw the modified pixels if they are available.
-//    if (cameraTex.isAllocated()) {
+    if (cameraTex.isAllocated()) {
 //        cameraTex.draw(0, cameraHeight, cameraWidth, cameraHeight);
-//    }
+    }
     
     if(img.isAllocated()) {
-        img.draw(0, 0, cameraWidth, cameraHeight);
+//        ofPushMatrix();
+//        ofScale(1, -1, 1);
+//        ofTranslate(0, -cameraHeight, 0);
+//        img.draw(0, 0, cameraWidth, cameraHeight);
+//        ofPopMatrix();
     }
     
     for(int i = 0; i < loadedImages.size(); i++) {
@@ -151,8 +196,25 @@ void ofApp::draw(){
     centers = tracker.getFollowers();
     for(int i = 0; i < centers.size(); i++) {
         centers[i].draw();
-        ofDrawBitmapString(ofToString(centers[i].area), 400, 400);
     }
+    
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    glEnable(GL_DEPTH_TEST);
+    
+    cam.begin();
+    
+    for (int i = 0; i < boidNum; i++) {
+        glPushMatrix();
+        glTranslatef(boids[i].position.x, boids[i].position.y, boids[i].position.z);
+        
+        GLfloat color[] = { 0.8, 0.2, 0.2, 1.0 };
+        
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+        glCallList(1);
+        glPopMatrix();
+    }
+    
+    cam.end();
     
     ofSetColor(255);
     ofDrawBitmapString(ofToString(grabber.getWidth()), 400, 400);

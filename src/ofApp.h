@@ -2,6 +2,8 @@
 
 #include "ofMain.h"
 
+#include "ofxBoids.h"
+
 #include "IPVideoGrabber.h"
 
 #include "ofxCv.h"
@@ -77,4 +79,9 @@ class ofApp : public ofBaseApp{
         ofxThreadedImageLoader loader;
         ImageFileWatcher imageFileWatcher;
         vector<ofImage*> loadedImages;
+    
+        ofEasyCam cam;
+        int boidNum;
+        ofVec3f target;
+        vector<SteeredVehicle> boids;
 };
