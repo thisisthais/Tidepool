@@ -26,8 +26,9 @@ public:
     ofVec3f cur, smooth;
     std::size_t cameraWidth = 1600;
     std::size_t cameraHeight = 1200;
+    ofParameter<float> xStart, xScale, yStart, yScale;
     float area;
-
+    bool active;
     void setup(const cv::Rect& track);
     void update(const cv::Rect& track);
     void kill();
@@ -86,4 +87,6 @@ class ofApp : public ofBaseApp{
         int boidNum;
         ofVec3f target;
         vector<SteeredVehicle> boids;
+    
+        ofParameter<float> xStart, xScale, yStart, yScale;
 };

@@ -8,19 +8,20 @@ using namespace cv;
 const float dyingTime = -1;
 
 void Glow::setup(const cv::Rect& track) {
+    area = track.area();
     color.setHsb(ofRandom(0, 255), 255, 255);
     cur = toOf(track).getCenter();
-    cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
-    cur.y = 1200.0f*cur.y/768.0f;
-    area = track.area();
+    cur.x = xStart + (ofGetWindowWidth() - (ofGetWindowWidth()*cur.x/1024.0f))*xScale;
+    cur.y = yStart + (ofGetWindowHeight()*cur.y/768.0f)*yScale;
+    active = true;
     smooth = cur;
 }
 
 void Glow::update(const cv::Rect& track) {
-    cur = toOf(track).getCenter();
-    cur.x = 1600.0f - (1600.0f*cur.x/1024.0f);
-    cur.y = 1200.0f*cur.y/768.0f;
     area = track.area();
+    cur = toOf(track).getCenter();
+    cur.x = xStart + (ofGetWindowWidth() - (ofGetWindowWidth()*cur.x/1024.0f))*xScale;
+    cur.y = yStart + (ofGetWindowHeight()*cur.y/768.0f)*yScale;
 //    smooth.interpolate(cur, .5);
 //    all.addVertex(smooth);
 }
@@ -101,7 +102,7 @@ void ofApp::setup(){
 
 //    glEndList();
     
-    boidNum = 50;
+    boidNum = 150;
     target = ofVec3f(0, 0, 0);
     
     for (int i = 0; i < boidNum; i++) {
@@ -124,8 +125,13 @@ void ofApp::setup(){
     useGaussian = false;
     gui.add(useGaussian.set("Use Gaussian", false));
     gui.add(radius.set("Radius", 0, 0, 100));
+    gui.add(xStart.set("xStart", -85, -500, 500));
+    gui.add(xScale.set("xScale", 1, 0.8, 1.4));
+    gui.add(yStart.set("yStart", 10, -500, 500));
+    gui.add(yScale.set("yScale", 1.15, 0.8, 1.4));
     contourFinder.setSimplify(true);
     largestCenter = *(new Glow());
+    largestCenter.active = false;
 }
 
 //--------------------------------------------------------------
@@ -136,13 +142,13 @@ void ofApp::update(){
         cameraPix = grabber.getPixels();
 
         // Use or modify pixels in some way, e.g. invert the colors.
-        for (std::size_t x = 0; x < cameraPix.getWidth(); x++)
-        {
-            for (std::size_t y = 0; y < cameraPix.getHeight(); y++)
-            {
-                cameraPix.setColor(x, y, cameraPix.getColor(x, y) - 100);
-            }
-        }
+//        for (std::size_t x = 0; x < cameraPix.getWidth(); x++)
+//        {
+//            for (std::size_t y = 0; y < cameraPix.getHeight(); y++)
+//            {
+//                cameraPix.setColor(x, y, cameraPix.getColor(x, y) - 100);
+//            }
+//        }
 
         // Load the texture.
         cameraTex.loadData(cameraPix);
@@ -170,8 +176,13 @@ void ofApp::update(){
         ofVec2f attractor(largestCenter.cur.x - ofGetWidth()*0.5,ofGetHeight()*0.5 - largestCenter.cur.y );
 
     for (int i = 0; i < boidNum; i++) {
-        
-        boids[i].flock(boids, attractor);
+        float type = float(
+                           
+                           float( i % loadedImages.size())
+                           
+                           /float (loadedImages.size()));
+        boids[i].mass = 0.5 + type * 3.;
+        boids[i].flock(boids, attractor, largestCenter.active);
 //        boids[i].flock(boids, ofGetMouseX(), ofGetMouseY());
         boids[i].update();
         boids[i].bounce(1500, 900, 20);
@@ -187,7 +198,6 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofSetColor(255);
         
     // Draw the camera.
 //    ofPushMatrix();
@@ -196,6 +206,8 @@ void ofApp::draw(){
 //    grabber.draw(0, 0, cameraWidth, cameraHeight);
 //    ofPopMatrix();
 
+    
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
     // Draw the modified pixels if they are available.
     if (cameraTex.isAllocated()) {
         ofPushMatrix();
@@ -204,6 +216,7 @@ void ofApp::draw(){
         cameraTex.draw(0, 0, cameraWidth, cameraHeight);
         ofPopMatrix();
     }
+    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 //
 //    if(img.isAllocated()) {
 //        ofPushMatrix();
@@ -239,7 +252,8 @@ void ofApp::draw(){
         ofDrawLine(0,0,-boids[i].velocity.x*2.0,-boids[i].velocity.y*2.0);
         int imgi = i % loadedImages.size();
         ofSetColor(0xffffff);
-        loadedImages[imgi]->draw(-20,-20, 40, 40);
+        float size = 30 + boids[i].position.z*1.0;
+        loadedImages[imgi]->draw(-size/2,-size/2, size, size);
         
 //        glMaterialfv(RONT_AGL_FND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
 //        glCallList(1);
@@ -256,19 +270,25 @@ void ofApp::draw(){
     contourFinder.draw();
     ofPopMatrix();
     centers = tracker.getFollowers();
-    
+    largestCenter.active = false;
     for(int i = 0; i < centers.size(); i++) {
+        centers[i].xStart = xStart;
+        centers[i].xScale = xScale;
+        centers[i].yStart = yStart;
+        centers[i].yScale = yScale;
         if(i==0){
             largestCenter= centers[i];
+            largestCenter.active = true;
         }else
             if(largestCenter.area <centers[i].area)
             {
                 largestCenter = centers[i];
+                largestCenter.active = true;
+
         }
         ofSetColor(255);
         centers[i].draw();
     }
-    
     ofSetColor(0,255,0);
     largestCenter.draw();
     gui.draw();

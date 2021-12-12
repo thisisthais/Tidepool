@@ -68,8 +68,8 @@ public:
 		pathIndex = 0;
 		pathThreshold = 20.0f;
 		pathLoop = false;
-		inSightDist = 120.0f;
-		tooCloseDist = 20.0f;
+		inSightDist = 220.0f;
+		tooCloseDist = 50.0f;
 	}
 	
 	
@@ -88,12 +88,13 @@ public:
 	bool tooClose(const ofVec3f& target);
 	
 	
-	template<typename Type> void flock(std::vector<Type>& vehicles, ofVec2f attractor)
+	template<typename Type> void flock(std::vector<Type>& vehicles, ofVec2f attractor, bool shouldSeek)
 	{
 		ofVec3f averageVelocity;
 		ofVec3f averagePosition;
 		int inSightCnt = 0;
 		
+        
 		averageVelocity.set(velocity);
 		
 		for (int i = 0; i < vehicles.size(); i++)
@@ -118,7 +119,13 @@ public:
 			averageVelocity *= 1.0f / inSightCnt;
 			steeringForce += averageVelocity - velocity;
 		}
-        seek(ofVec3f(attractor.x,attractor.y,0.0));
+        float distanceTarget = position.distance(ofVec3f(attractor.x,attractor.y,0.0));
+        if(shouldSeek && distanceTarget < inSightDist*3.){
+            ofVec2f pos = ofVec2f(position.x, position.y) - attractor;
+            ofVec2f perp = ofVec2f(pos.y, -pos.x).normalize();
+            attractor += perp*inSightDist*1.5f;
+            seek(ofVec3f(attractor.x,attractor.y,0.0));
+        }
 	}
 };
 
