@@ -125,10 +125,10 @@ void ofApp::setup(){
     useGaussian = false;
     gui.add(useGaussian.set("Use Gaussian", false));
     gui.add(radius.set("Radius", 0, 0, 100));
-    gui.add(xStart.set("xStart", -85, -500, 500));
+    gui.add(xStart.set("xStart", 45, -500, 500));
     gui.add(xScale.set("xScale", 1, 0.8, 1.4));
-    gui.add(yStart.set("yStart", 10, -500, 500));
-    gui.add(yScale.set("yScale", 1.15, 0.8, 1.4));
+    gui.add(yStart.set("yStart", -215, -500, 500));
+    gui.add(yScale.set("yScale", 1.106, 0.8, 1.4));
     contourFinder.setSimplify(true);
     largestCenter = *(new Glow());
     largestCenter.active = false;
@@ -232,10 +232,10 @@ void ofApp::draw(){
 //        ofPopMatrix();
 //    }
     
-    for(int i = 0; i < loadedImages.size(); i++) {
-        ofSetColor(0xffffff);
+//    for(int i = 0; i < loadedImages.size(); i++) {
+//        ofSetColor(0xffffff);
 //        loadedImages[i]->draw(200*1, 200, 200, 200);
-    }
+//    }
     
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //    glEnable(GL_DEPTH_TEST);
@@ -274,7 +274,7 @@ void ofApp::draw(){
     ofPushMatrix();
     ofTranslate(cameraWidth, 0, 0);
     ofScale(-1, 1, 0);
-    contourFinder.draw();
+//    contourFinder.draw();
     ofPopMatrix();
     centers = tracker.getFollowers();
     largestCenter.active = false;
@@ -298,7 +298,7 @@ void ofApp::draw(){
     }
     ofSetColor(0,255,0);
     largestCenter.draw();
-    gui.draw();
+//    gui.draw();
     
 }
 
